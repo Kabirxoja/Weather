@@ -31,7 +31,7 @@ fun SplashScreen(onNavigateToMain: () -> Unit) {
             //FETCH DATA
         }
 
-        delay(2000)
+        delay(500)
 
         withContext(Dispatchers.Main) {
             onNavigateToMain()

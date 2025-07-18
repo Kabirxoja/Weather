@@ -2,15 +2,18 @@ package uz.kabir.weather.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Soft base colors
-val LightBackground = Color(0xFFEFEFEF)       // near-white
-val SurfaceLight = Color(0xFFFFFFFF)          // card / box background
-val PrimaryBlue = Color(0xFFB3D4FC)           // light blue (buttons, top bar)
-val TextPrimary = Color(0xFF1E1E1E)           // black-ish for main text
-val TextSecondary = Color(0xFF5F6368)         // gray text
-val IndicatorBlue = Color(0xFF90CAF9)         // used in charts or icons
-val DividerGray = Color(0xFFDADCE0)           // light divider
+// Soft, minimal light mode colors
+val LightBackground = Color(0xFFF5F5F7)       // very light gray background
+val SurfaceLight = Color(0xFFFFFFFF)          // white cards/panels
+val PrimaryBlue = Color(0xFF4DBBFF)           // saturated blue for "Add City" button
+val TextPrimary = Color(0xFF2D2D2D)           // dark gray for main text (not pure black)
+val TextSecondary = Color(0xFF7A7A7A)         // lighter gray for subtitle or label text
+val IndicatorBlue = Color(0xFF00B2FF)         // cyan-blue for weather icons
+val DividerGray = Color(0xFFE0E0E0)           // light gray dividers
 
-// Dark mode colors (optional for later)
+// Air Quality tag green (good)
+val AQGoodGreen = Color(0xFF4CAF50)           // for good air quality status
+
+// Dark mode fallback
 val DarkBackground = Color(0xFF121212)
 val DarkSurface = Color(0xFF1F1F1F)

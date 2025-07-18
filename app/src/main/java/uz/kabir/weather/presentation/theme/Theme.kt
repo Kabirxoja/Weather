@@ -13,29 +13,29 @@ import androidx.compose.ui.platform.LocalContext
 
 
 private val LightColorScheme = lightColorScheme(
-    primary = PrimaryBlue,
-    secondary = IndicatorBlue,
-    tertiary = DividerGray,
-    background = LightBackground,
-    surface = SurfaceLight,
-    onPrimary = TextPrimary,     // text on buttons
-    onSecondary = TextSecondary, // text on chips/indicators
-    onTertiary = TextSecondary,
-    onBackground = TextPrimary,  // general text color
-    onSurface = TextPrimary      // card or box text
+    primary = PrimaryBlue,               // buttons, icons
+    secondary = IndicatorBlue,           // weather/air indicators
+    tertiary = DividerGray,              // card/section dividers
+    background = LightBackground,        // whole app background
+    surface = SurfaceLight,              // white cards
+    onPrimary = Color.White,             // text on blue buttons
+    onSecondary = TextPrimary,           // icon labels, metric text
+    onTertiary = TextSecondary,          // subtitles or tags
+    onBackground = TextPrimary,          // main text
+    onSurface = TextPrimary              // card text
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryBlue,            // soft blue for accents
-    secondary = IndicatorBlue,        // lighter blue (for icons/indicators)
-    tertiary = DividerGray,           // subtle dividers if needed
-    background = DarkBackground,      // general app background
-    surface = DarkSurface,            // cards and content containers
-    onPrimary = Color.White,          // text on buttons
-    onSecondary = Color.LightGray,    // secondary text
-    onTertiary = Color.LightGray,
-    onBackground = Color.White,       // main text color
-    onSurface = Color.White           // text inside cards
+    primary = PrimaryBlue,
+    secondary = IndicatorBlue,
+    tertiary = DividerGray,
+    background = DarkBackground,
+    surface = DarkSurface,
+    onPrimary = Color.White,
+    onSecondary = Color.LightGray,
+    onTertiary = Color.Gray,
+    onBackground = Color.White,
+    onSurface = Color.White
 )
 
 

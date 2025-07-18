@@ -33,6 +33,10 @@ class MainViewModel(
     private val _airPollutionState = MutableStateFlow<AirCurrentResult>(AirCurrentResult.Loading)
     val airPollutionState: StateFlow<AirCurrentResult> = _airPollutionState.asStateFlow()
 
+    private val _pollutionLevels = MutableStateFlow<Map<String, PollutionLevel>>(emptyMap())
+    val pollutionLevels: StateFlow<Map<String, PollutionLevel>> = _pollutionLevels.asStateFlow()
+
+
     fun onIntent(intent: MainIntent) {
         when (intent) {
 
@@ -67,31 +71,38 @@ class MainViewModel(
                 }
             }
 
-                is MainIntent.LoadCurrentAirPollution -> {
-                    viewModelScope.launch {
-                        val lat = _cityState.value?.lat
-                        val lon = _cityState.value?.lon
-
-                        if (lat != null && lon != null) {
-                            val result = getCurrentAirPollutionUseCase(
-                                lat = lat.toString(),
-                                lon = lon.toString()
-                            )
-
-                            result.fold(
-                                onSuccess = { data ->
-                                    _airPollutionState.value = AirCurrentResult.Success(data)
-                                },
-                                onFailure = { throwable ->
-                                    _airPollutionState.value =
-                                        AirCurrentResult.Error(throwable.message ?: "Unknown error")
-                                }
-                            )
-                        } else {
-                            _airPollutionState.value = AirCurrentResult.Error("Location not available")
-                        }
-                    }
+            is MainIntent.LoadCurrentAirPollution -> viewModelScope.launch {
+                val (lat, lon) = _cityState.value?.let { it.lat to it.lon } ?: (null to null)
+                if (lat == null || lon == null) {
+                    _airPollutionState.value =
+                        AirCurrentResult.Error("Location not available")
+                    return@launch
                 }
+
+                getCurrentAirPollutionUseCase(lat.toString(), lon.toString()).fold(
+                    onSuccess = { data ->
+                        _airPollutionState.value = AirCurrentResult.Success(data)
+                        Log.d("DARAS", "DATA: $data")
+
+                        // -------- CLASSIFY every pollutant ----------
+                        _pollutionLevels.value = mapOf(
+                            "PM2.5"  to data.pm2_5.pm25Level(),
+                            "PM10"   to data.pm10.pm10Level(),
+                            "NO₂"    to data.no2.no2Level(),
+                            "O₃"     to data.o3.o3Level(),
+                            "CO"     to data.co.coLevel(),
+                            "SO₂"    to data.so2.so2Level()
+                            // add NH₃ if you wish (no widely used breakpoints)
+                        )
+                    },
+                    onFailure = { e ->
+                        _airPollutionState.value =
+                            AirCurrentResult.Error(e.message ?: "Unknown error")
+                        _pollutionLevels.value = emptyMap()        // clear levels
+                    }
+                )
+            }
+
         }
     }
 }

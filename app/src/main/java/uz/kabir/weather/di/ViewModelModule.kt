@@ -7,5 +7,5 @@ import uz.kabir.weather.presentation.screen.main.MainViewModel
 
 val viewModelModule = module {
     viewModel { AddViewModel(get(), get(), get(), get(), get())  }
-    viewModel { MainViewModel(get(), get(), get()) }
+    viewModel { MainViewModel(get(), get(), get(), get()) }
 }

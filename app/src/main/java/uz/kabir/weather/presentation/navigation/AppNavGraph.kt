@@ -15,16 +15,16 @@ import uz.kabir.weather.presentation.screen.splash.SplashScreen
 fun AppNavGraph(navHostController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navHostController,
-        startDestination = AppDestination.Splash.route,
+        startDestination = AppDestination.Main.route,
         modifier = Modifier.fillMaxSize()
     ) {
-        composable(AppDestination.Splash.route) {
-            SplashScreen(onNavigateToMain = {
-                navHostController.navigate(AppDestination.Main.route) {
-                    popUpTo(AppDestination.Splash.route) { inclusive = true }
-                }
-            })
-        }
+//        composable(AppDestination.Splash.route) {
+//            SplashScreen(onNavigateToMain = {
+//                navHostController.navigate(AppDestination.Main.route) {
+//                    popUpTo(AppDestination.Splash.route) { inclusive = true }
+//                }
+//            })
+//        }
         composable(AppDestination.Main.route) {
             MainScreen(navController = navHostController)
         }

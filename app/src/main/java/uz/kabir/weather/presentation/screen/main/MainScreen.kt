@@ -59,250 +59,318 @@ fun MainScreen(
 
     LaunchedEffect(Unit) {
         mainViewModel.onIntent(MainIntent.LoadSelectedCity)
+        mainViewModel.onIntent(MainIntent.LoadInitialData)
     }
 
 
     val cityState by mainViewModel.cityState.collectAsState()
     val weatherState by mainViewModel.weatherState.collectAsState()
     val airPollutionState by mainViewModel.airPollutionState.collectAsState()
-
+    val state by mainViewModel.state.collectAsState()
     val pollutionLevels by mainViewModel.pollutionLevels.collectAsState()
-    Log.d("ERTY", "pollutionLevels: $pollutionLevels")
 
     // Internet mavjud emasligini aniqlash
-    val noInternet = weatherState is WeatherCurrentResult.Error && (weatherState as WeatherCurrentResult.Error).message == "No internet connection"
+    val noInternet =
+        weatherState is WeatherCurrentResult.Error && (weatherState as WeatherCurrentResult.Error).message == "No internet connection"
                 || airPollutionState is AirCurrentResult.Error && (airPollutionState as AirCurrentResult.Error).message == "No internet connection"
 
     val noCitySelected = cityState?.city.isNullOrBlank()
-    Log.d("FFFR", "No city selected: $noCitySelected")
-    Log.d("FFFR", "cityState: $cityState")
+
+    Log.d("ERTY", "state: ${state.noCitySelected}, ${state.noInternet}, ${state.error}, ${state.isLoading}")
 
 
-    if (noInternet) {
-        ShowMessage(R.drawable.ic_wifi, "No internet connection", onClick = {})
-    } else if (noCitySelected) {
-        ShowMessage(R.drawable.ic_empty, "No city selected", onClick = { navController.navigate(AppDestination.Add.route) })
-    } else {
+
+    Log.d("WWWRR", "noInternet: $noInternet")
+    Log.d("WWWRR", "noCitySelected: $noCitySelected")
+
+    Log.d("WWWRR", "weatherState: $weatherState")
+    Log.d("WWWRR", "weatherState: $airPollutionState")
 
 
-        var city = cityState?.city ?: ""
-        var timestamp = 0L
-        var temp = ""
-        var feelsLike = ""
-        var wind = ""
-        var humidity = ""
-        var visibility = ""
-        var pressure = ""
-        var cloud = ""
-        var sunrise = 0L
-        var sunset = 0L
-        var weatherDesc = ""
-        var temperature = ""
-
-        var aqi = ""
-        var co = ""
-        var no = ""
-        var no2 = ""
-        var o3 = ""
-        var so2 = ""
-        var pm2_5 = ""
-        var pm10 = ""
-        var nh3 = ""
-
-        var date by remember { mutableStateOf("") }
-        var sunriseFormatted by  remember { mutableStateOf("") }
-        var sunsetFormatted by remember { mutableStateOf("") }
-
-
-        when (val state = weatherState) {
-            is WeatherCurrentResult.Loading -> {
-                // Show loading state
-                Log.d("MainScreen", "Loading...")
-            }
-
-            is WeatherCurrentResult.Success -> {
-                // Update UI with weather data
-                Log.d("MainScreen", "WEATHER ${state.data}")
-                temp = state.data.temperature.toString()
-                feelsLike = state.data.feelsLike.toString()
-                wind = state.data.windSpeed.toString()
-                humidity = state.data.humidity.toString()
-                visibility = state.data.cloudiness.toString()
-                pressure = state.data.pressure.toString()
-                cloud = state.data.cloudiness.toString()
-                sunrise = state.data.sunrise
-                sunriseFormatted = java.text.SimpleDateFormat("HH:mm").format(java.util.Date(sunrise * 1000))
-                sunset = state.data.sunset
-                sunsetFormatted = java.text.SimpleDateFormat("HH:mm").format(java.util.Date(sunset * 1000))
-                weatherDesc = state.data.weatherDescription
-                temperature = state.data.temperature.toString()
-                city = state.data.cityName
-            }
-
-            is WeatherCurrentResult.Error -> {
-                // Show error state
-                Log.d("MainScreen", "ERROR W ${state.message}")
-
-            }
-        }
-
-        when (val state = airPollutionState) {
-            is AirCurrentResult.Loading -> {
-                Log.d("MainScreen", "Loading...")
-            }
-
-            is AirCurrentResult.Success -> {
-                Log.d("MainScreen", "AIR ${state.data}")
-                timestamp = state.data.timestamp
-                date = java.text.SimpleDateFormat("HH:mm").format(java.util.Date(timestamp * 1000))
-                aqi = state.data.aqi.toString()
-                co = state.data.co.toString()
-                no = state.data.no.toString()
-                no2 = state.data.no2.toString()
-                o3 = state.data.o3.toString()
-                so2 = state.data.so2.toString()
-                pm2_5 = state.data.pm2_5.toString()
-                pm10 = state.data.pm10.toString()
-                nh3 = state.data.nh3.toString()
-            }
-
-            is AirCurrentResult.Error -> {
-                Log.d("MainScreen", "ERROR A ${state.message}")
-            }
-        }
-
-        val geoInfoDomain: GeoInfoDomain? = cityState
-
-
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            MainTopBar(
-                onAddCityClick = { navController.navigate(AppDestination.Add.route) },
-                cityName = city,
-                countryName = geoInfoDomain?.country ?: "",
-                currentTime = date
+    when {
+        state.isLoading -> {
+            ShowMessage(
+                R.drawable.ic_wifi,
+                "SPLASH",
+                onClick = { /* Retry action */ }
             )
+        }
+
+        state.noInternet -> {
+            ShowMessage(
+                R.drawable.ic_wifi,
+                "No internet connection",
+                onClick = { /* Retry action */ }
+            )
+            return // UI to‘xtaydi, boshqa hech narsa chizilmaydi
+        }
+
+        state.noCitySelected -> {
+            ShowMessage(
+                R.drawable.ic_empty,
+                "No city selected",
+                onClick = {
+                    navController.navigate(AppDestination.Add.route)
+                }
+            )
+            return // UI to‘xtaydi
+        }
+        state.error != null -> {
+
+        }
+
+        else -> {
 
 
+            var city = cityState?.city ?: ""
+            var timestamp = 0L
+            var temp = ""
+            var feelsLike = ""
+            var wind = ""
+            var humidity = ""
+            var visibility = ""
+            var pressure = ""
+            var cloud = ""
+            var sunrise = 0L
+            var sunset = 0L
+            var weatherDesc = ""
+            var temperature = ""
 
-            Spacer(modifier = Modifier.height(16.dp))
+            var aqi = ""
+            var co = ""
+            var no = ""
+            var no2 = ""
+            var o3 = ""
+            var so2 = ""
+            var pm2_5 = ""
+            var pm10 = ""
+            var nh3 = ""
 
-            // Weather icon and temperature
-            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center) {
+            var date by remember { mutableStateOf("") }
+            var sunriseFormatted by remember { mutableStateOf("") }
+            var sunsetFormatted by remember { mutableStateOf("") }
+            var temperatureFormatted by remember { mutableStateOf("") }
 
-                Text(
-                    text = temperature,
-                    fontSize = 72.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
 
-                )
-                Text(
-                    text = "°C",
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onTertiary,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
+            when (val state = weatherState) {
+                is WeatherCurrentResult.Loading -> {
+                    // Show loading state
+                    Log.d("MainScreen", "Loading...")
+                }
+
+                is WeatherCurrentResult.Success -> {
+                    // Update UI with weather data
+
+                    temp = state.data.temperature.toString()
+                    Log.d("MainScreen", "WEATHER ${state.data}")
+                    temperatureFormatted = temp.substringBefore(".") // . keyin olishi kerak
+
+
+                    feelsLike = state.data.feelsLike.toString().substringBefore(".")
+                    wind = state.data.windSpeed.toString()
+                    humidity = state.data.humidity.toString()
+                    visibility = state.data.cloudiness.toString()
+                    pressure = state.data.pressure.toString()
+                    cloud = state.data.cloudiness.toString()
+                    sunrise = state.data.sunrise
+                    sunriseFormatted = java.text.SimpleDateFormat("HH:mm").format(java.util.Date(sunrise * 1000))
+                    sunset = state.data.sunset
+                    sunsetFormatted = java.text.SimpleDateFormat("HH:mm").format(java.util.Date(sunset * 1000))
+                    weatherDesc = state.data.weatherDescription
+                    city = state.data.cityName
+                }
+
+                is WeatherCurrentResult.Error -> {
+                    // Show error state
+                    Log.d("MainScreen", "ERROR W ${state.message}")
+
+                }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Image(painter = painterResource(id = R.drawable.icon_sunny), contentDescription = null)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Weather Details Card
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(color = MaterialTheme.colorScheme.onSecondary)
-            ) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    WeatherDetail(R.drawable.ic_temperature, "Feels Like", feelsLike)
-                    WeatherDetail(R.drawable.ic_wind, "Wind", wind)
-                    WeatherDetail(R.drawable.ic_humidity, "Humidity", humidity)
+            when (val state = airPollutionState) {
+                is AirCurrentResult.Loading -> {
+                    Log.d("MainScreen", "Loading...")
                 }
+
+                is AirCurrentResult.Success -> {
+                    Log.d("MainScreen", "AIR ${state.data}")
+                    timestamp = state.data.timestamp
+                    date =
+                        java.text.SimpleDateFormat("HH:mm").format(java.util.Date(timestamp * 1000))
+                    aqi = state.data.aqi.toString()
+                    co = state.data.co.toString()
+                    no = state.data.no.toString()
+                    no2 = state.data.no2.toString()
+                    o3 = state.data.o3.toString()
+                    so2 = state.data.so2.toString()
+                    pm2_5 = state.data.pm2_5.toString()
+                    pm10 = state.data.pm10.toString()
+                    nh3 = state.data.nh3.toString()
+                }
+
+                is AirCurrentResult.Error -> {
+                    Log.d("MainScreen", "ERROR A ${state.message}")
+                }
+            }
+
+            val geoInfoDomain: GeoInfoDomain? = cityState
+
+
+
+            Column(
+                modifier = modifier
+                    .background(color = MaterialTheme.colorScheme.background)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                MainTopBar(
+                    onAddCityClick = { navController.navigate(AppDestination.Add.route) },
+                    cityName = city,
+                    countryName = geoInfoDomain?.country ?: "",
+                    currentTime = date
+                )
+
+
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Weather icon and temperature
+                Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center) {
+
+                    Text(
+                        text = temperatureFormatted,
+                        fontSize = 72.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+
+                    )
+                    Text(
+                        text = "°C",
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(12.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    WeatherDetail(R.drawable.ic_visibility, "Visibility", visibility)
-                    WeatherDetail(R.drawable.ic_pressure, "Pressure", pressure)
-                    WeatherDetail(R.drawable.ic_clouds, "Cloud", cloud)
+
+                Image(
+                    painter = painterResource(id = R.drawable.icon_sunny),
+                    contentDescription = null
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Weather Details Card
+                Column(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(color = MaterialTheme.colorScheme.surface)
+                ) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        WeatherDetail(R.drawable.ic_temperature, "Feels Like", "$feelsLike °C")
+                        WeatherDetail(R.drawable.ic_wind, "Wind", "$wind km/h")
+                        WeatherDetail(R.drawable.ic_humidity, "Humidity", "$humidity%")
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        WeatherDetail(R.drawable.ic_visibility, "Visibility", "$visibility km")
+                        WeatherDetail(R.drawable.ic_pressure, "Pressure", "$pressure hPa")
+                        WeatherDetail(R.drawable.ic_clouds, "Cloud", "$cloud%")
+                    }
+
+                    Text(
+                        text = "more",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier
+                            .align(
+                                Alignment.End
+                            )
+                            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                            .clickable {
+                                TODO()
+                            }
+                    )
                 }
 
-                Text(
-                    text = "more",
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
+                Spacer(modifier = Modifier.height(16.dp))
+
+                //Air Quality
+                Column(
                     modifier = Modifier
-                        .align(
-                            Alignment.End
-                        )
-                        .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
-                        .clickable {
-                            TODO()
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(color = MaterialTheme.colorScheme.surface)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, bottom = 0.dp)
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            AirQualityItem("O₃", o3, pollutionLevels["O₃"] ?: PollutionLevel.GOOD)
+                            AirQualityItem(
+                                "NO₂",
+                                no2,
+                                pollutionLevels["NO₂"] ?: PollutionLevel.GOOD
+                            )
+                            AirQualityItem("CO", co, pollutionLevels["CO"] ?: PollutionLevel.GOOD)
                         }
-                )
-            }
+                        Column(modifier = Modifier.weight(1f)) {
+                            AirQualityItem(
+                                "PM2.5",
+                                pm2_5,
+                                pollutionLevels["PM2.5"] ?: PollutionLevel.GOOD
+                            )
+                            AirQualityItem(
+                                "PM10",
+                                pm10,
+                                pollutionLevels["PM10"] ?: PollutionLevel.GOOD
+                            )
+                            AirQualityItem(
+                                "SO₂",
+                                so2,
+                                pollutionLevels["SO₂"] ?: PollutionLevel.GOOD
+                            )
+                        }
+                    }
 
-            Spacer(modifier = Modifier.height(16.dp))
 
-            //Air Quality
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(color = MaterialTheme.colorScheme.onSecondary)
-            ) {
+                    Text(
+                        text = "more",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier
+                            .align(
+                                Alignment.End
+                            )
+                            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                            .clickable {
+                                TODO()
+                            }
+                    )
+                }
+
+
+                // Sunrise & Sunset
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp, bottom = 0.dp)
+                        .padding(vertical = 24.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        AirQualityItem("O₃", o3, pollutionLevels["O₃"] ?: PollutionLevel.GOOD)
-                        AirQualityItem("NO₂", no2, pollutionLevels["NO₂"] ?: PollutionLevel.GOOD)
-                        AirQualityItem("CO", co, pollutionLevels["CO"] ?: PollutionLevel.GOOD)
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        AirQualityItem("PM2.5", pm2_5, pollutionLevels["PM2.5"] ?: PollutionLevel.GOOD)
-                        AirQualityItem("PM10", pm10, pollutionLevels["PM10"] ?: PollutionLevel.GOOD)
-                        AirQualityItem("SO₂", so2, pollutionLevels["SO₂"] ?: PollutionLevel.GOOD)
-                    }
+                    SunInfoItem(R.drawable.ic_sunrise, "Sunrise", sunriseFormatted)
+                    SunInfoItem(R.drawable.ic_sunset, "Sunset", sunsetFormatted)
                 }
-
-
-                Text(
-                    text = "more",
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier
-                        .align(
-                            Alignment.End
-                        )
-                        .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
-                        .clickable {
-                            TODO()
-                        }
-                )
-            }
-
-
-            // Sunrise & Sunset
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                SunInfoItem(R.drawable.ic_sunrise, "Sunrise", sunriseFormatted)
-                SunInfoItem(R.drawable.ic_sunset, "Sunset", sunsetFormatted)
             }
         }
     }
@@ -315,7 +383,7 @@ fun AirQualityItem(
     level: PollutionLevel,
     modifier: Modifier = Modifier
 ) {
-    val barColor = when(level){
+    val barColor = when (level) {
         PollutionLevel.GOOD -> Color(0xFF4CAF50)
         PollutionLevel.MODERATE -> Color(0xFFFFC107)
         PollutionLevel.UNHEALTHY_SENSITIVE -> Color(0xFFFF9800)
@@ -332,7 +400,7 @@ fun AirQualityItem(
         // Left text
         Text(
             text = textLeft,
-            fontSize = 18.sp,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f)
         )
@@ -349,7 +417,7 @@ fun AirQualityItem(
         // Right text
         Text(
             text = textRight,
-            fontSize = 18.sp,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier
                 .weight(1f)
@@ -366,13 +434,17 @@ fun WeatherDetail(iconRes: Int, label: String, value: String) {
             painter = painterResource(id = iconRes),
             contentDescription = null,
             tint = Color.Unspecified,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(36.dp)
         )
         Text(
-            text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onTertiary
         )
         Text(
-            text = value, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
         )
     }
 }
@@ -386,8 +458,16 @@ fun SunInfoItem(iconRes: Int, label: String, time: String) {
             tint = Color.Unspecified,
             modifier = Modifier.size(48.dp)
         )
-        Text(text = label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onBackground)
-        Text(text = time, fontSize = 16.sp, color = MaterialTheme.colorScheme.onBackground)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onTertiary
+        )
+        Text(
+            text = time,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
 
     }
 }
@@ -401,9 +481,7 @@ fun MainTopBar(
     currentTime: String
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         // Left-aligned city and country
         Column(
@@ -418,7 +496,7 @@ fun MainTopBar(
             Text(
                 text = countryName,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.tertiary
+                color = MaterialTheme.colorScheme.onTertiary
             )
         }
 
@@ -436,13 +514,14 @@ fun MainTopBar(
             onClick = onAddCityClick,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .size(56.dp) // Optional size adjustment
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_add),
                 contentDescription = "Add City",
                 tint = Color.Unspecified,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .size(56.dp)
+                    .padding(2.dp)
             )
         }
     }

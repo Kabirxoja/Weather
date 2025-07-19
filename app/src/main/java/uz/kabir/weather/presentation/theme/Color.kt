@@ -3,7 +3,7 @@ package uz.kabir.weather.presentation.theme
 import androidx.compose.ui.graphics.Color
 
 // Soft, minimal light mode colors
-val LightBackground = Color(0xFFF5F5F7)       // very light gray background
+val LightBackground = Color(0xFFF1F1F1)       // very light gray background
 val SurfaceLight = Color(0xFFFFFFFF)          // white cards/panels
 val PrimaryBlue = Color(0xFF4DBBFF)           // saturated blue for "Add City" button
 val TextPrimary = Color(0xFF2D2D2D)           // dark gray for main text (not pure black)

@@ -1,6 +1,4 @@
-package uz.kabir.weather.presentation.screen.main
-
-import uz.kabir.weather.domain.model.CityGeoDomain
+package uz.kabir.weather.presentation.screen.intent
 
 sealed interface MainIntent{
     object LoadSelectedCity : MainIntent

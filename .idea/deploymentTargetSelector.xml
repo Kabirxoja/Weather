@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="Weather.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-07-18T20:27:07.403815800Z">
+        <DropdownSelection timestamp="2025-07-19T15:00:44.843116100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\xakim\.android\avd\Pixel_2_API_24.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\xakim\.android\avd\API_34_13344x2992_xxhdpi.avd" />
             </handle>
           </Target>
         </DropdownSelection>

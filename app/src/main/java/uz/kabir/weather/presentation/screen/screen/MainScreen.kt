@@ -1,4 +1,4 @@
-package uz.kabir.weather.presentation.screen.main
+package uz.kabir.weather.presentation.screen.screen
 
 
 import android.util.Log
@@ -20,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,8 +48,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import uz.kabir.weather.domain.model.GeoInfoDomain
-import uz.kabir.weather.presentation.state.AirCurrentResult
-import uz.kabir.weather.presentation.state.WeatherCurrentResult
+import uz.kabir.weather.presentation.screen.intent.MainIntent
+import uz.kabir.weather.presentation.screen.other.PollutionLevel
+import uz.kabir.weather.presentation.screen.state.AirCurrentState
+import uz.kabir.weather.presentation.screen.state.WeatherCurrentState
+import uz.kabir.weather.presentation.screen.viewmodel.MainViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
 
 @Composable
 fun MainScreen(
@@ -71,8 +77,8 @@ fun MainScreen(
 
     // Internet mavjud emasligini aniqlash
     val noInternet =
-        weatherState is WeatherCurrentResult.Error && (weatherState as WeatherCurrentResult.Error).message == "No internet connection"
-                || airPollutionState is AirCurrentResult.Error && (airPollutionState as AirCurrentResult.Error).message == "No internet connection"
+        weatherState is WeatherCurrentState.Error && (weatherState as WeatherCurrentState.Error).message == "No internet connection"
+                || airPollutionState is AirCurrentState.Error && (airPollutionState as AirCurrentState.Error).message == "No internet connection"
 
     val noCitySelected = cityState?.city.isNullOrBlank()
 
@@ -89,11 +95,7 @@ fun MainScreen(
 
     when {
         state.isLoading -> {
-            ShowMessage(
-                R.drawable.ic_wifi,
-                "SPLASH",
-                onClick = { /* Retry action */ }
-            )
+            ProgressMessage()
         }
 
         state.noInternet -> {
@@ -153,12 +155,12 @@ fun MainScreen(
 
 
             when (val state = weatherState) {
-                is WeatherCurrentResult.Loading -> {
+                is WeatherCurrentState.Loading -> {
                     // Show loading state
                     Log.d("MainScreen", "Loading...")
                 }
 
-                is WeatherCurrentResult.Success -> {
+                is WeatherCurrentState.Success -> {
                     // Update UI with weather data
 
                     temp = state.data.temperature.toString()
@@ -173,14 +175,14 @@ fun MainScreen(
                     pressure = state.data.pressure.toString()
                     cloud = state.data.cloudiness.toString()
                     sunrise = state.data.sunrise
-                    sunriseFormatted = java.text.SimpleDateFormat("HH:mm").format(java.util.Date(sunrise * 1000))
+                    sunriseFormatted = SimpleDateFormat("HH:mm").format(Date(sunrise * 1000))
                     sunset = state.data.sunset
-                    sunsetFormatted = java.text.SimpleDateFormat("HH:mm").format(java.util.Date(sunset * 1000))
+                    sunsetFormatted = SimpleDateFormat("HH:mm").format(Date(sunset * 1000))
                     weatherDesc = state.data.weatherDescription
                     city = state.data.cityName
                 }
 
-                is WeatherCurrentResult.Error -> {
+                is WeatherCurrentState.Error -> {
                     // Show error state
                     Log.d("MainScreen", "ERROR W ${state.message}")
 
@@ -188,15 +190,15 @@ fun MainScreen(
             }
 
             when (val state = airPollutionState) {
-                is AirCurrentResult.Loading -> {
+                is AirCurrentState.Loading -> {
                     Log.d("MainScreen", "Loading...")
                 }
 
-                is AirCurrentResult.Success -> {
+                is AirCurrentState.Success -> {
                     Log.d("MainScreen", "AIR ${state.data}")
                     timestamp = state.data.timestamp
                     date =
-                        java.text.SimpleDateFormat("HH:mm").format(java.util.Date(timestamp * 1000))
+                        SimpleDateFormat("HH:mm").format(Date(timestamp * 1000))
                     aqi = state.data.aqi.toString()
                     co = state.data.co.toString()
                     no = state.data.no.toString()
@@ -208,7 +210,7 @@ fun MainScreen(
                     nh3 = state.data.nh3.toString()
                 }
 
-                is AirCurrentResult.Error -> {
+                is AirCurrentState.Error -> {
                     Log.d("MainScreen", "ERROR A ${state.message}")
                 }
             }
@@ -552,6 +554,13 @@ fun ShowMessage(image: Int?, message: String?, onClick: () -> Unit) {
         Button(onClick = { onClick() }) {
             Text(text = "")
         }
+    }
+}
+
+@Composable
+fun ProgressMessage(){
+    Box {
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
     }
 }
 

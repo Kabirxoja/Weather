@@ -1,10 +1,8 @@
 package uz.kabir.weather.domain.usecase
 
-import uz.kabir.weather.data.remote.model.CurrentAirPollutionData
 import uz.kabir.weather.data.remote.network.NetworkChecker
 import uz.kabir.weather.domain.model.CurrentAirPollutionDomain
 import uz.kabir.weather.domain.repository.NetworkRepository
-import uz.kabir.weather.presentation.state.AirCurrentResult
 
 class GetCurrentAirPollutionUseCase(
     private val networkRepository: NetworkRepository,

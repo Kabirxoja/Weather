@@ -3,7 +3,6 @@ package uz.kabir.weather.domain.usecase
 import uz.kabir.weather.data.remote.network.NetworkChecker
 import uz.kabir.weather.domain.model.CurrentWeatherDomain
 import uz.kabir.weather.domain.repository.NetworkRepository
-import uz.kabir.weather.presentation.state.WeatherCurrentResult
 
 class GetCurrentWeatherUseCase(
     private val networkRepository: NetworkRepository,

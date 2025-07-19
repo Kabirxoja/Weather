@@ -1,8 +1,8 @@
-package uz.kabir.weather.presentation.screen.add
+package uz.kabir.weather.presentation.screen.screen
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,19 +35,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.LightGray
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import org.koin.androidx.compose.koinViewModel
 import uz.kabir.weather.R
 import uz.kabir.weather.domain.model.CityGeoDomain
 import uz.kabir.weather.domain.model.CurrentWeatherDomain
 import uz.kabir.weather.domain.model.GeoInfoDomain
-import uz.kabir.weather.presentation.state.WeatherCurrentResult
+import uz.kabir.weather.presentation.navigation.AppDestination
+import uz.kabir.weather.presentation.screen.intent.AddIntent
+import uz.kabir.weather.presentation.screen.viewmodel.AddViewModel
+import uz.kabir.weather.presentation.screen.state.WeatherCurrentState
 
 @Composable
-fun AddScreen() {
+fun AddScreen(navController:NavController) {
 
     val viewModel: AddViewModel = koinViewModel()
 
@@ -72,13 +78,15 @@ fun AddScreen() {
         viewModel.sendIntent(AddIntent.GetCurrentWeather(""))
     }
 
+
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
 
-            // 🔍 Qidiruv TextField
+
             SearchSection(
                 query = localQuery,
                 onValueChange = { newQuery ->
@@ -92,7 +100,6 @@ fun AddScreen() {
 
             if (isFocused) {
                 when {
-
                     state.cityGeoList != null -> {
                         SearchCityList(
                             cityList = state.cityGeoList,
@@ -115,23 +122,11 @@ fun AddScreen() {
                     state.isLoading -> {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     }
-
-                    state.errorMessage != null -> {
-                        Text(
-                            text = "Error: ${state.errorMessage}",
-                            color = Color.Red,
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        )
-                    }
-
-
                 }
             } else {
-
-
                 state.getCurrentWeatherData.forEach { result ->
                     when (result) {
-                        is WeatherCurrentResult.Success -> {
+                        is WeatherCurrentState.Success -> {
                             CityItem(weather = result.data, onCityClick = { //currentweather
                                 viewModel.sendIntent(
                                     AddIntent.SaveSelectedCity(
@@ -143,21 +138,20 @@ fun AddScreen() {
                                         )
                                     )
                                 ) //type is different
+                                navController.navigate(AppDestination.Main.route)
+
                             })
+
                         }
 
-                        is WeatherCurrentResult.Loading -> {
+                        is WeatherCurrentState.Loading -> {
                             CircularProgressIndicator(
                                 modifier = Modifier.align(Alignment.CenterHorizontally)
                             )
                         }
 
-                        is WeatherCurrentResult.Error -> {
-                            Text(
-                                text = "Error: ${result.message}",
-                                color = Color.Red,
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                            )
+                        is WeatherCurrentState.Error -> {
+                            Toast.makeText(LocalContext.current, "Error: ${result.message}", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -180,24 +174,26 @@ fun SearchSection(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
-            .padding(horizontal = 16.dp)
-            .border(1.dp, LightGray, RoundedCornerShape(16.dp)),
+            .clip(RoundedCornerShape(16.dp))
+            .background(color = MaterialTheme.colorScheme.surface),
         placeholder = {
             Text(
                 text = hint,
-                modifier = Modifier.wrapContentHeight(Alignment.CenterVertically)
+                modifier = Modifier.wrapContentHeight(Alignment.CenterVertically),
+                color = MaterialTheme.colorScheme.onTertiary,
+                style = MaterialTheme.typography.titleMedium
             )
         },
         trailingIcon = {
             if (query.isNotEmpty()) {
-                IconButton(onClick = { onValueChange("") }) {  // ✅ BU MUHIM
+                IconButton(onClick = { onValueChange("") }) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_wind),
+                        painter = painterResource(id = R.drawable.ic_clear),
                         contentDescription = "Clear search",
                         modifier = Modifier
-                            .size(24.dp)
-                            .padding(4.dp),
-                        tint = Color.Gray
+                            .size(32.dp)
+                            .padding(2.dp),
+                        tint = Color.Unspecified
                     )
                 }
             }
@@ -205,6 +201,10 @@ fun SearchSection(
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
         colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            disabledContainerColor = MaterialTheme.colorScheme.surface,
+            errorContainerColor = MaterialTheme.colorScheme.surface,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
@@ -245,24 +245,24 @@ fun CityGeoItem(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(vertical = 8.dp)
+            .height(56.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+        ,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
             Text(
                 text = cityName,
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.titleMedium
             )
             Text(
                 text = country,
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodySmall
             )
         }
 
@@ -273,7 +273,7 @@ fun CityGeoItem(
             contentDescription = "Location",
             tint = Color.Unspecified,
             modifier = Modifier
-                .size(52.dp)
+                .size(32.dp)
                 .clickable {
                     onClick()
                 }
@@ -287,9 +287,10 @@ fun CityItem(weather: CurrentWeatherDomain, onCityClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .border(1.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+            .padding(top = 8.dp, bottom = 8.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .clip(RoundedCornerShape(16.dp))
             .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
             .clickable { onCityClick() },
         verticalAlignment = Alignment.CenterVertically
@@ -298,31 +299,43 @@ fun CityItem(weather: CurrentWeatherDomain, onCityClick: () -> Unit) {
         Column {
             Text(
                 text = weather.cityName,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineSmall
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleMedium
             )
             Text(
                 text = weather.country,
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium
+                color = MaterialTheme.colorScheme.onTertiary,
+                style = MaterialTheme.typography.bodySmall
             )
         }
 
-        val image = if (weather.weatherDescription == "Rainy") {
+        val image = if (weather.weatherDescription.contains("rain")) {
             R.drawable.icon_rainy
-        } else if (weather.weatherDescription == "Sunny") {
+        } else if (weather.weatherDescription.contains("clear")) {
             R.drawable.icon_sunny
-        } else {
+        } else if (weather.weatherDescription.contains("clouds")) {
             R.drawable.icon_cloudy
+        } else if (weather.weatherDescription.contains("snow")) {
+            R.drawable.icon_snowy
+        } else if (weather.weatherDescription.contains("fog")) {
+            R.drawable.icon_foggy
+        } else if (weather.weatherDescription.contains("smoke")) {
+            R.drawable.icon_cloudy
+        } else if (weather.weatherDescription.contains("thunderstorm ")) {
+            R.drawable.icon_thunderstorm
+        } else {
+            R.drawable.icon_drizzle
         }
+        Log.d("EEERRR", "weatherDescription: ${weather.weatherDescription}")
 
         Spacer(modifier = Modifier.weight(1f)) // ← BU MUHIM
 
         Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "${weather.temperature} °C",
+                "${weather.temperature.toString().substringBefore(".")}°C",
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(end = 8.dp)
             )
 
@@ -330,7 +343,7 @@ fun CityItem(weather: CurrentWeatherDomain, onCityClick: () -> Unit) {
                 painter = painterResource(id = image),
                 contentDescription = "Location",
                 tint = Color.Unspecified,
-                modifier = Modifier.size(52.dp)
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -341,6 +354,6 @@ fun CityItem(weather: CurrentWeatherDomain, onCityClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun AddCountryScreenPreview() {
-    AddScreen()
+    AddScreen(navController = rememberNavController())
 }
 

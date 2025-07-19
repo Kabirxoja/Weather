@@ -1,4 +1,4 @@
-package uz.kabir.weather.presentation.screen.add
+package uz.kabir.weather.presentation.screen.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -27,8 +26,9 @@ import uz.kabir.weather.domain.usecase.GetCurrentWeatherUseCase
 import uz.kabir.weather.domain.usecase.GetGeoCodingUseCase
 import uz.kabir.weather.domain.usecase.SaveCityGeoUseCase
 import uz.kabir.weather.domain.usecase.SaveSelectedCityUseCase
-import uz.kabir.weather.presentation.state.GeoCodingResult
-import uz.kabir.weather.presentation.state.WeatherCurrentResult
+import uz.kabir.weather.presentation.screen.intent.AddIntent
+import uz.kabir.weather.presentation.screen.state.AddState
+import uz.kabir.weather.presentation.screen.state.WeatherCurrentState
 
 class AddViewModel(
     private val geoCodingUseCase: GetGeoCodingUseCase,
@@ -137,8 +137,8 @@ class AddViewModel(
 
                 val weatherList = cities.map { city ->
                     getCurrentWeatherUseCase(city.name).fold(
-                        onSuccess = { WeatherCurrentResult.Success(it) },
-                        onFailure = { WeatherCurrentResult.Error(it.message ?: "Unknown error") }
+                        onSuccess = { WeatherCurrentState.Success(it) },
+                        onFailure = { WeatherCurrentState.Error(it.message ?: "Unknown error") }
                     )
                 }
 
@@ -149,4 +149,3 @@ class AddViewModel(
         }
     }
 }
-

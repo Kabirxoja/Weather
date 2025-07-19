@@ -1,26 +1,32 @@
-package uz.kabir.weather.presentation.screen.main
+package uz.kabir.weather.presentation.screen.viewmodel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uz.kabir.weather.data.remote.network.NetworkChecker
 import uz.kabir.weather.domain.model.GeoInfoDomain
 import uz.kabir.weather.domain.usecase.GetCurrentAirPollutionUseCase
 import uz.kabir.weather.domain.usecase.GetCurrentWeatherUseCase
 import uz.kabir.weather.domain.usecase.GetSelectedCityUseCase
-import uz.kabir.weather.presentation.screen.main.MainState.*
-import uz.kabir.weather.presentation.state.AirCurrentResult
-import uz.kabir.weather.presentation.state.AirCurrentResult.*
-import uz.kabir.weather.presentation.state.WeatherCurrentResult
-import uz.kabir.weather.presentation.state.WeatherCurrentResult.*
+import uz.kabir.weather.presentation.screen.intent.MainIntent
+import uz.kabir.weather.presentation.screen.other.PollutionLevel
+import uz.kabir.weather.presentation.screen.other.coLevel
+import uz.kabir.weather.presentation.screen.other.no2Level
+import uz.kabir.weather.presentation.screen.other.o3Level
+import uz.kabir.weather.presentation.screen.other.pm10Level
+import uz.kabir.weather.presentation.screen.other.pm25Level
+import uz.kabir.weather.presentation.screen.other.so2Level
+import uz.kabir.weather.presentation.screen.state.AirCurrentState
+import uz.kabir.weather.presentation.screen.state.AirCurrentState.Loading
+import uz.kabir.weather.presentation.screen.state.AirCurrentState.Success
+import uz.kabir.weather.presentation.screen.state.MainState
+import uz.kabir.weather.presentation.screen.state.WeatherCurrentState
 
 class MainViewModel(
     private val getSelectedCityUseCase: GetSelectedCityUseCase,
@@ -32,11 +38,11 @@ class MainViewModel(
     private val _cityState = MutableStateFlow<GeoInfoDomain?>(null)
     val cityState: StateFlow<GeoInfoDomain?> = _cityState.asStateFlow()
 
-    private val _weatherState = MutableStateFlow<WeatherCurrentResult>(WeatherCurrentResult.Loading)
-    val weatherState: StateFlow<WeatherCurrentResult> = _weatherState.asStateFlow()
+    private val _weatherState = MutableStateFlow<WeatherCurrentState>(WeatherCurrentState.Loading)
+    val weatherState: StateFlow<WeatherCurrentState> = _weatherState.asStateFlow()
 
-    private val _airPollutionState = MutableStateFlow<AirCurrentResult>(AirCurrentResult.Loading)
-    val airPollutionState: StateFlow<AirCurrentResult> = _airPollutionState.asStateFlow()
+    private val _airPollutionState = MutableStateFlow<AirCurrentState>(Loading)
+    val airPollutionState: StateFlow<AirCurrentState> = _airPollutionState.asStateFlow()
 
     private val _pollutionLevels = MutableStateFlow<Map<String, PollutionLevel>>(emptyMap())
     val pollutionLevels: StateFlow<Map<String, PollutionLevel>> = _pollutionLevels.asStateFlow()
@@ -67,29 +73,29 @@ class MainViewModel(
                     val result = getCurrentWeatherUseCase(cityName)
                     result
                         .onSuccess { data ->
-                            _weatherState.value = WeatherCurrentResult.Success(data)
+                            _weatherState.value = WeatherCurrentState.Success(data)
                             Log.d("DARAS", "DATA: $data")
 
                         }
                         .onFailure { e ->
                             _weatherState.value =
-                                WeatherCurrentResult.Error(e.message ?: "Unknown error")
+                                WeatherCurrentState.Error(e.message ?: "Unknown error")
                         }
                 } else {
-                    _weatherState.value = WeatherCurrentResult.Error("City not selected")
+                    _weatherState.value = WeatherCurrentState.Error("City not selected")
                 }
             }
 
             is MainIntent.LoadCurrentAirPollution -> viewModelScope.launch {
                 val (lat, lon) = _cityState.value?.let { it.lat to it.lon } ?: (null to null)
                 if (lat == null || lon == null) {
-                    _airPollutionState.value = AirCurrentResult.Error("Location not available")
+                    _airPollutionState.value = AirCurrentState.Error("Location not available")
                     return@launch
                 }
 
                 getCurrentAirPollutionUseCase(lat.toString(), lon.toString()).fold(
                     onSuccess = { data ->
-                        _airPollutionState.value = AirCurrentResult.Success(data)
+                        _airPollutionState.value = Success(data)
                         Log.d("DARAS", "DATA: $data")
 
                         // -------- CLASSIFY every pollutant ----------
@@ -105,7 +111,7 @@ class MainViewModel(
                     },
                     onFailure = { e ->
                         _airPollutionState.value =
-                            AirCurrentResult.Error(e.message ?: "Unknown error")
+                            AirCurrentState.Error(e.message ?: "Unknown error")
                         _pollutionLevels.value = emptyMap()        // clear levels
                     }
                 )

@@ -1,4 +1,4 @@
-package uz.kabir.weather.presentation.screen.main
+package uz.kabir.weather.presentation.screen.other
 
 enum class PollutionLevel(val label: String) {
     GOOD("Good"),

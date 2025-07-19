@@ -1,4 +1,4 @@
-package uz.kabir.weather.presentation.screen.main
+package uz.kabir.weather.presentation.screen.other
 
 /* ────────── PM 2.5 (μg/m³) ────────── */
 internal fun Double.pm25Level() = when {

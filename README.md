@@ -20,14 +20,14 @@ View weather information worldwide
 
 # ✨ Features
 
-📍 Search weather by city name
-🌦 View current weather conditions (temperature, humidity, wind, etc.)
-🌫 Air Quality Index (AQI) support
-📅 5-day forecast with hourly breakdown
-📡 Live data fetching from OpenWeatherMap API
-💾 Local caching with Room/DataStore
-🌓 Dark & Light mode support
-⚡ Reactive UI with MVI pattern
+- 📍 Search weather by city name
+- 🌦 View current weather conditions (temperature, humidity, wind, etc.)
+- 🌫 Air Quality Index (AQI) support
+- 📅 5-day forecast with hourly breakdown
+- 📡 Live data fetching from OpenWeatherMap API
+- 💾 Local caching with Room/DataStore
+- 🌓 Dark & Light mode support
+- ⚡ Reactive UI with MVI pattern
 
 # 🔧 Tech Stack
 
